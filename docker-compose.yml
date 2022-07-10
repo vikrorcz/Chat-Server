@@ -1,0 +1,39 @@
+#volumes:
+#  data:
+#
+#services:
+#  postgres:
+#    image: postgres:latest
+#    environment:
+#      - POSTGRES_USER: "docker"
+#      - POSTGRES_PASSWORD: "postgrespw"
+#      - POSTGRES_DB: "db"
+#    ports:
+#      - "8080:8080"
+#    volumes:
+#      - data:/var/lib/postgresql
+#  myapp:
+#    image: "postgres"
+#  environment:
+#      - discovery.type=single-node
+
+
+version: '2'
+services:
+
+  # SQL database
+  postgres:
+    image: "postgres:9.6.0"
+    restart: "always"
+    volumes:
+      - "ktor-starter-data:/var/lib/postgresql/data"
+    ports:
+      - "54321:5432" #- "54321:5432"
+    environment:
+      POSTGRES_USER: "testuser"
+      POSTGRES_PASSWORD: "mpassword"
+      POSTGRES_DB: "ktor-db"
+    mem_limit: "8g"
+
+volumes:
+  ktor-starter-data:
