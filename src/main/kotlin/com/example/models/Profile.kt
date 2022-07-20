@@ -6,6 +6,7 @@ import org.jetbrains.exposed.sql.Table
 object Profile : Table() {
     val id: Column<Int> = integer("id").autoIncrement()
     val email = varchar("email", 100)
+    val username = varchar("username", 100)
     val password = varchar("password", 100)
     override val primaryKey = PrimaryKey(id)
 }
@@ -13,5 +14,7 @@ object Profile : Table() {
 data class ProfileType(
     val id: Int,
     val email: String,
+    val username: String,
     val password: String
 )
+

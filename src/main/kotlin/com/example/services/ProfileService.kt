@@ -21,9 +21,17 @@ class ProfileService {
             .singleOrNull()
     }
 
-    suspend fun registerProfile(email: String, passwordHash: String) = dbQuery {
+    suspend fun getProfileByUsername(username: String): ProfileType? = dbQuery {
+        Profile.select {
+            (Profile.username eq username)
+        }.mapNotNull { toProfileType(it) }
+            .singleOrNull()
+    }
+
+    suspend fun registerProfile(email: String, username: String, passwordHash: String) = dbQuery {
         Profile.insert {
             it[Profile.email] = email
+            it[Profile.username] = username
             it[password] = passwordHash
         }
     }
@@ -32,6 +40,7 @@ class ProfileService {
         ProfileType(
             id = row[Profile.id],
             email = row[Profile.email],
+            username = row[Profile.username],
             password = row[Profile.password]
         )
 }

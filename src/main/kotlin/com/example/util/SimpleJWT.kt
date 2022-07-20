@@ -9,7 +9,6 @@ import java.util.*
 
 object SimpleJWT {
     private val appConfig = HoconApplicationConfig(ConfigFactory.load())
-
     private val jwtSecret = appConfig.property("jwt.secret").getString()
     private val jwtIssuer = appConfig.property("jwt.issuer").getString()
     private val jwtAudience = appConfig.property("jwt.audience").getString()

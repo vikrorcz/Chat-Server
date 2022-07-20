@@ -18,7 +18,7 @@
 #      - discovery.type=single-node
 
 
-version: '2'
+version: '3'
 services:
 
   # SQL database
