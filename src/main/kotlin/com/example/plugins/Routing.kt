@@ -35,6 +35,7 @@ fun Application.configureRouting() {
 
             val profile = profileService.getProfileByEmail(creds.email)
 
+            //Only solution that applies id correctly?
             for (i in profileService.getAllUsers()) {
                 if (profile?.email == i.email) {
                     call.respond(LoginRegisterResponse("Email address already in use"))
@@ -49,6 +50,22 @@ fun Application.configureRouting() {
                 }
             }
 
+
+            //Check if username is available
+            /*
+            var profile: ProfileType? = profileService.getProfileByUsername(creds.username)
+            if (profile != null) {
+                call.respond(LoginRegisterResponse("Username already in use"))
+                return@post
+            }
+
+            //Check if username is available
+            profile = profileService.getProfileByEmail(creds.email)
+            if (profile != null) {
+                call.respond(LoginRegisterResponse("Email already in use"))
+                return@post
+            }
+            */
 
             profileService.registerProfile(creds.email, creds.username, BCrypt.hashpw(creds.password, BCrypt.gensalt()))
             call.respond(LoginRegisterResponse("Successfully registered"))
@@ -83,19 +100,21 @@ fun Application.configureRouting() {
             */
 
             //2nd solution probably better
+
             var profile: ProfileType?
             profile = profileService.getProfileByUsername(creds.username)
             if (profile == null || !BCrypt.checkpw(creds.password, profile.password)) {
                 //username does not exist try login with email
                 profile = profileService.getProfileByEmail(creds.username)
                 if (profile == null || !BCrypt.checkpw(creds.password, profile.password)) {
-                    call.respond("User does not exist")
+                    call.respond(LoginRegisterResponse("Invalid credentials"))
                     return@post
                 }
             }
 
-            val token = SimpleJWT.createJwtToken(profile.email)
-            call.respond(hashMapOf("token" to token))
+            call.respond(LoginRegisterResponse("Logged in"))
+            //val token = SimpleJWT.createJwtToken(profile.email)
+            //call.respond(hashMapOf("token" to token))
         }
 
 
