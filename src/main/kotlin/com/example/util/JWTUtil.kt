@@ -7,7 +7,7 @@ import com.typesafe.config.ConfigFactory
 import io.ktor.server.config.*
 import java.util.*
 
-object SimpleJWT {
+object JWTUtil {
     private val appConfig = HoconApplicationConfig(ConfigFactory.load())
     private val jwtSecret = appConfig.property("jwt.secret").getString()
     private val jwtIssuer = appConfig.property("jwt.issuer").getString()

@@ -2,8 +2,7 @@ package com.example
 
 import io.ktor.server.application.*
 import com.example.plugins.*
-import org.flywaydb.core.Flyway
-import javax.sql.DataSource
+import com.example.util.DatabaseFactory
 
 fun main(args: Array<String>): Unit =
     io.ktor.server.netty.EngineMain.main(args)

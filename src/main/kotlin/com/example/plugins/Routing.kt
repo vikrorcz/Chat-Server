@@ -2,9 +2,11 @@ package com.example.plugins
 
 
 import com.example.models.ProfileType
-import com.example.models.entities.*
+import com.example.models.requests.*
+import com.example.models.responses.AutoLoginResponse
+import com.example.models.responses.LoginRegisterResponse
 import com.example.services.ProfileService
-import com.example.util.SimpleJWT
+import com.example.util.JWTUtil
 import io.ktor.server.routing.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -28,13 +30,13 @@ fun Application.configureRouting() {
             val profile: ProfileType? = profileService.getProfileByUsername(creds.username)
             if (profile == null || !BCrypt.checkpw(creds.oldPassword, profile.password)) {
                 //login failed
-                call.respond(LoginRegisterResponse("Current password is invalid"))
+                call.respond(LoginRegisterResponse("Current password is invalid", null))
                 return@post
             }
 
             //proceed with changing the password
             profileService.updateProfilePassword(creds.username, newPassword = creds.newPassword)
-            call.respond(LoginRegisterResponse("Successfully changed password"))
+            call.respond(LoginRegisterResponse("Successfully changed password", null))
         }
 
         post("/register") {
@@ -43,7 +45,7 @@ fun Application.configureRouting() {
             var profile: ProfileType? = profileService.getProfileByEmail(creds.email)
             for (i in profileService.getAllUsers()) {
                 if (profile?.email == i.email) {
-                    call.respond(LoginRegisterResponse("Email address already in use"))
+                    call.respond(LoginRegisterResponse("Email address already in use", null))
                     return@post
                 }
             }
@@ -51,13 +53,14 @@ fun Application.configureRouting() {
             profile = profileService.getProfileByUsername(creds.username)
             for (i in profileService.getAllUsers()) {
                 if (profile?.username == i.username) {
-                    call.respond(LoginRegisterResponse("Username already in use"))
+                    call.respond(LoginRegisterResponse("Username already in use", null))
                     return@post
                 }
             }
 
             profileService.registerProfile(creds.email, creds.username, BCrypt.hashpw(creds.password, BCrypt.gensalt()))
-            call.respond(LoginRegisterResponse("Successfully registered"))
+
+            call.respond(LoginRegisterResponse("Successfully registered", null))
         }
 
         post("/login") {
@@ -69,12 +72,23 @@ fun Application.configureRouting() {
                 //username does not exist try login with email
                 profile = profileService.getProfileByEmail(creds.username)
                 if (profile == null || !BCrypt.checkpw(creds.password, profile!!.password)) {
-                    call.respond(LoginRegisterResponse("Invalid credentials"))
+                    call.respond(LoginRegisterResponse("Invalid credentials", null))
                     return@post
                 }
             }
 
-            call.respond(LoginRegisterResponse("Logged in"))
+            val jwt = JWTUtil.createJwtToken(creds.username).toString()
+            call.respond(LoginRegisterResponse("Logged in", jwt))
+        }
+
+        authenticate {
+            get("/auto-login") {
+                println("someting is happe")
+                val principal = call.principal<UserIdPrincipal>()
+                val email = principal?.name
+                println(email)
+                call.respond(AutoLoginResponse(email.toString()))
+            }
         }
 
 

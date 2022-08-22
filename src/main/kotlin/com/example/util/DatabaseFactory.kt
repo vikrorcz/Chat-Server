@@ -1,4 +1,4 @@
-package com.example
+package com.example.util
 
 import com.typesafe.config.ConfigFactory
 import com.zaxxer.hikari.HikariConfig
@@ -18,7 +18,7 @@ object DatabaseFactory {
     //private val dbPassword = appConfig.property("db.dbPassword").getString()
     private val db_port = "54321"
     private val db_name = "ktor-db"
-    private val jdbcURL = "jdbc:postgresql://localhost:${db_port}/${db_name}"
+    private val jdbcURL = "jdbc:postgresql://localhost:$db_port/$db_name"
     private val db_user = "testuser"
     private val db_password = "mpassword"
     private val config = HoconApplicationConfig(ConfigFactory.load())
@@ -28,11 +28,11 @@ object DatabaseFactory {
     fun init() {
         Database.connect(hikari())
         val flyway = Flyway.configure().dataSource(jdbcURL, db_user, db_password)
-            .outOfOrder(true)
-            .ignoreMissingMigrations(true)
+            //.outOfOrder(true)
+            //.ignoreMissingMigrations(true)
             .load()
 
-        flyway.repair()
+        //flyway.repair()
         flyway.migrate()
     }
 
@@ -52,7 +52,7 @@ object DatabaseFactory {
 
     suspend fun <T> dbQuery(block: () -> T): T =
         withContext(Dispatchers.IO) {
-            transaction{ block() }
+            transaction{ block() }//transaction{ String } for raw SQL
         }
 
 

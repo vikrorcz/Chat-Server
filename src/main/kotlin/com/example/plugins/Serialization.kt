@@ -16,9 +16,9 @@ fun Application.configureSerialization() {
             }
     }
 
-    routing {
-        get("/json/jackson") {
-                call.respond(mapOf("hello" to "world"))
-            }
-    }
+    //routing {
+    //    get("/json/jackson") {
+    //            call.respond(mapOf("hello" to "world"))
+    //        }
+    //}
 }

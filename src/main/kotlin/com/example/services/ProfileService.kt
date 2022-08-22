@@ -1,10 +1,9 @@
 package com.example.services
 
-import com.example.DatabaseFactory.dbQuery
+import com.example.util.DatabaseFactory.dbQuery
 import com.example.models.Profile
 import com.example.models.ProfileType
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.transactions.transaction
 import org.mindrot.jbcrypt.BCrypt
 
 class ProfileService {
