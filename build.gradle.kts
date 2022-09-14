@@ -33,26 +33,17 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:$logback_version")
 
     implementation("io.ktor:ktor-server-auth:$ktor_version")
-
+    implementation("io.ktor:ktor-server-websockets:$ktor_version")
     implementation("org.postgresql:postgresql:42.3.0")
     implementation("com.zaxxer:HikariCP:4.0.3")//4.0.3
-
     implementation("org.flywaydb:flyway-core:6.5.2")
 
     implementation("org.jetbrains.exposed", "exposed-core", "0.38.1")//0.38.1
     implementation("org.jetbrains.exposed", "exposed-jdbc", "0.38.1")//0.38.1
-    //implementation("org.jetbrains.exposed", "exposed-dao", "0.38.1")
+
 
     // password hashing
     implementation("org.mindrot:jbcrypt:0.4")
-
-
-
-
-
-    //implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
-
-
 
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")

@@ -5,6 +5,7 @@ import com.example.models.ProfileType
 import com.example.models.requests.*
 import com.example.models.responses.AutoLoginResponse
 import com.example.models.responses.LoginRegisterResponse
+import com.example.models.responses.SearchUserResponse
 import com.example.services.ProfileService
 import com.example.util.JWTUtil
 import io.ktor.server.routing.*
@@ -12,6 +13,8 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
 import org.mindrot.jbcrypt.BCrypt
 
 fun Application.configureRouting() {
@@ -83,22 +86,46 @@ fun Application.configureRouting() {
 
         authenticate {
             get("/auto-login") {
-                println("someting is happe")
                 val principal = call.principal<UserIdPrincipal>()
                 val email = principal?.name
-                println(email)
                 call.respond(AutoLoginResponse(email.toString()))
             }
         }
 
+        post("/search-user"){
+            val user = call.receive<SearchUser>()
+
+            var profile: ProfileType? = profileService.getProfileByUsername(user.user)
+            if (profile == null) {
+                //username does not exist try finding user by email
+                profile = profileService.getProfileByEmail(user.user)
+                if (profile == null) {
+                    call.respond(SearchUserResponse("User not found"))
+                    return@post
+                }
+            }
+
+
+            call.respond(SearchUserResponse("User found", profile!!.username, profile!!.email))
+        }
+
+
+        webSocket("/chat") {
+            send("You are connected!")
+            for(frame in incoming) {
+                frame as? Frame.Text ?: continue
+                val receivedText = frame.readText()
+                send("You said: $receivedText")
+            }
+        }
 
         //token  email abc, password 123
         //token ex: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJqd3QtYXVkaWVuY2UiLCJpc3MiOiJodHRwOi8vMC4wLjAuMDo4MDgwLyIsImV4cCI6MTY1NzQ3ODQ3MCwiZW1haWwiOiJhYmMifQ.i0f_htCypJlQxOINJXPC1UznoHd8gQFOnCi6qFO1ruc
         //authenticate {
-            get("/profiles") {
-                val users = profileService.getAllUsers()
-                call.respond(users)
-            }
+        //    get("/profiles") {
+        //        val users = profileService.getAllUsers()
+        //        call.respond(users)
+        //    }
         //}
     }
 }

@@ -54,6 +54,4 @@ object DatabaseFactory {
         withContext(Dispatchers.IO) {
             transaction{ block() }//transaction{ String } for raw SQL
         }
-
-
 }
