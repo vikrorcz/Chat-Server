@@ -5,7 +5,7 @@ val logback_version: String by project
 plugins {
     application
     kotlin("jvm") version "1.7.0"
-    //kotlin("plugin.serialization") version "1.7.0"
+    kotlin("plugin.serialization") version "1.7.0"
     //flyway()
 }
 
@@ -37,10 +37,14 @@ dependencies {
     implementation("org.postgresql:postgresql:42.3.0")
     implementation("com.zaxxer:HikariCP:4.0.3")//4.0.3
     implementation("org.flywaydb:flyway-core:6.5.2")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
 
     implementation("org.jetbrains.exposed", "exposed-core", "0.38.1")//0.38.1
     implementation("org.jetbrains.exposed", "exposed-jdbc", "0.38.1")//0.38.1
 
+
+    //gson
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     // password hashing
     implementation("org.mindrot:jbcrypt:0.4")

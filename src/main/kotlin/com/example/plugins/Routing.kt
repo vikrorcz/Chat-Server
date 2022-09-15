@@ -7,7 +7,12 @@ import com.example.models.responses.AutoLoginResponse
 import com.example.models.responses.LoginRegisterResponse
 import com.example.models.responses.SearchUserResponse
 import com.example.services.ProfileService
+import com.example.models.websocket.ChatMessage
+import com.example.util.ConnectedUser
 import com.example.util.JWTUtil
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.google.gson.Gson
 import io.ktor.server.routing.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -15,7 +20,10 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import io.ktor.websocket.serialization.*
 import org.mindrot.jbcrypt.BCrypt
+import java.util.*
+import kotlin.collections.LinkedHashSet
 
 fun Application.configureRouting() {
 
@@ -104,28 +112,39 @@ fun Application.configureRouting() {
                     return@post
                 }
             }
-
-
             call.respond(SearchUserResponse("User found", profile!!.username, profile!!.email))
         }
 
-
+        val connections = Collections.synchronizedSet<ConnectedUser?>(LinkedHashSet())
         webSocket("/chat") {
-            send("You are connected!")
-            for(frame in incoming) {
-                frame as? Frame.Text ?: continue
-                val receivedText = frame.readText()
-                send("You said: $receivedText")
+            //Adding user to chat
+            val chatMessage = receiveDeserialized<ChatMessage>()
+            // TODO: dumb fix but i don't know any other way (because first message sometimes is not received in incoming)
+            connections.forEach {
+                if (it.username == chatMessage.receivingUsername) {
+                    it.session?.send(Gson().toJson(chatMessage))// TODO: use jackson to convert to json but im too lazy
+                    println("Sending to ${it.username}")
+                }
+            }
+
+            val thisConnection = ConnectedUser(chatMessage.username)
+            thisConnection.session = this
+            connections += thisConnection
+            println("There are ${connections.count()} users here.")
+            try {
+                for (frame in incoming) {
+                    frame as? Frame.Text ?: continue
+                    val receivedText = frame.readText()
+                    connections.forEach {
+                        if (it.username == chatMessage.receivingUsername) {
+                            it.session?.send(receivedText)
+                            println("Sending to ${it.username}")
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                println(e.message)
             }
         }
-
-        //token  email abc, password 123
-        //token ex: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJqd3QtYXVkaWVuY2UiLCJpc3MiOiJodHRwOi8vMC4wLjAuMDo4MDgwLyIsImV4cCI6MTY1NzQ3ODQ3MCwiZW1haWwiOiJhYmMifQ.i0f_htCypJlQxOINJXPC1UznoHd8gQFOnCi6qFO1ruc
-        //authenticate {
-        //    get("/profiles") {
-        //        val users = profileService.getAllUsers()
-        //        call.respond(users)
-        //    }
-        //}
     }
 }

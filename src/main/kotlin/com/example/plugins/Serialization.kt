@@ -13,7 +13,7 @@ fun Application.configureSerialization() {
     install(ContentNegotiation) {
         jackson {
                 enable(SerializationFeature.INDENT_OUTPUT)
-            }
+        }
     }
 
     //routing {
