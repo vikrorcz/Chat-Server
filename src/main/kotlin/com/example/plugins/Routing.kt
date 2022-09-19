@@ -10,8 +10,6 @@ import com.example.services.ProfileService
 import com.example.models.websocket.ChatMessage
 import com.example.util.ConnectedUser
 import com.example.util.JWTUtil
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.gson.Gson
 import io.ktor.server.routing.*
 import io.ktor.server.application.*
@@ -115,35 +113,39 @@ fun Application.configureRouting() {
             call.respond(SearchUserResponse("User found", profile!!.username, profile!!.email))
         }
 
-        val connections = Collections.synchronizedSet<ConnectedUser?>(LinkedHashSet())
-        webSocket("/chat") {
-            //Adding user to chat
-            val chatMessage = receiveDeserialized<ChatMessage>()
-            // TODO: dumb fix but i don't know any other way (because first message sometimes is not received in incoming)
-            connections.forEach {
-                if (it.username == chatMessage.receivingUsername) {
-                    it.session?.send(Gson().toJson(chatMessage))// TODO: use jackson to convert to json but im too lazy
-                    println("Sending to ${it.username}")
-                }
-            }
+        val connections = Collections.synchronizedSet<ConnectedUser>(LinkedHashSet())
 
-            val thisConnection = ConnectedUser(chatMessage.username)
-            thisConnection.session = this
-            connections += thisConnection
-            println("There are ${connections.count()} users here.")
-            try {
-                for (frame in incoming) {
-                    frame as? Frame.Text ?: continue
-                    val receivedText = frame.readText()
-                    connections.forEach {
-                        if (it.username == chatMessage.receivingUsername) {
-                            it.session?.send(receivedText)
-                            println("Sending to ${it.username}")
+        webSocket("/chat") {
+            for (frame in incoming) {
+                frame as? Frame.Text ?: continue
+                val receivedText = frame.readText()
+                val messageDeserialized = Gson().fromJson(receivedText, ChatMessage::class.java)
+
+                println(
+                    "Received chat message: Message: ${messageDeserialized.message}," +
+                            " SendingUser: ${messageDeserialized.username}," +
+                            " ReceivingUser: ${messageDeserialized.receivingUsername}"
+                )
+
+                //Add user to connections
+                if (!(connections.any { it.username == messageDeserialized.username })) {
+                    val connectedUser = ConnectedUser(this, messageDeserialized.username)
+                    connections += connectedUser
+                    println("There are ${connections.count()} users here.")
+                } else {
+                    for (connection in connections) {
+                        if (connection.username == messageDeserialized.username)  {
+                            connection.session = this
                         }
                     }
                 }
-            } catch (e: Exception) {
-                println(e.message)
+
+                connections.forEach {
+                    if (it.username == messageDeserialized.receivingUsername) {
+                        it.session.send(receivedText)
+                        println("Sending to ${it.username}")
+                    }
+                }
             }
         }
     }
